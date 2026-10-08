@@ -1,16 +1,24 @@
 #!/bin/bash
-echo "creates the simh vax  install environment under /opt and builds the vax simulator"
+echo "creates the simh vax  install environment under /opt, pulls and builds the vax simulator"
 #
 if [ "$EUID" -ne 0 ]
   then echo "Please run as root"
-  exit
+  exit 1
 fi
 
-ether="enp0s3" # change me to whatever interface you use!
+space=`df  . --output='avail' | tail -1`
+echo "disk space available is $space"
+if [ $space -lt 300000000 ]
+then
+	echo "Not enough space. This install needs around 2.5Gb."
+	exit 1
+fi
+exit
+
 ether=`ip -br l | awk '$1 !~ "lo|vir|wl" { print $1}'`
 echo "using network interface named $ether"
 
-echo "updating repositories"
+echo "updating system repositories"
 apt-get update -y
 echo "installing all simulator dependencies..."
 apt-get install make libsdl2-dev libpng-dev libpcap-dev libvdeplug-dev bridge-utils unzip wget git gcc build-essential libedit-dev curl -y
@@ -117,5 +125,5 @@ cd /opt/simulators/vax8600/bin/
 echo "starting vax8600 simulator"
 echo "use: boot rq0"
 ./vax8600
-
+echo "Note: post-install we can now boot using rq0". see startvms.sh"
 #
